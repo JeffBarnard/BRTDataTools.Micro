@@ -1,0 +1,4 @@
+build/*
+WebServerWiFi/.theia_bk/launch.json
+WebServerWiFi/.vscode_bk/*
+arduino_secrets.h
