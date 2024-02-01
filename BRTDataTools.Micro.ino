@@ -1,40 +1,26 @@
 /*
 BRT Racing Data Tools microcontroller code
 
-TODO LIST:
+TODO:
 
-    Read pot data
-    Map pot data to range (0-150mm)
-    Sample rate
-    Start reading when motion/speed exceeds threshold
-    Stop reading when motion/speed is below threshold
-
-    Save data to SD card
-
-    Open WiFi access point
-    Transfer data to PC via WiFi
 
 */
 #include <Arduino_BuiltIn.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <utility/wifi_drv.h>
-//#include <LiquidCrystal.h>
-//#include <avr_debugger.h>
 
 #include "WebServer.h"
 #include "WiFiManager.h"
-
-// initialize the library with the numbers of the interface pins
-//LiquidCrystal lcd(7, 8, 9, 10, 11, 12);      // put your pin numbers here
-//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+#include "AnalogReader.h"
+#include "SDManager.h"
 
 #define R 26
 #define G 25
 #define B 27
 
-WebServer* webServer = new WebServer();
-WiFiManager* wifiManager = new WiFiManager();
+WebServer webServer;
+WiFiManager wifiManager;
 
 #define V_OUT 3
 #define POT_PIN (A0)
@@ -83,17 +69,8 @@ void setup()
   WiFiDrv::analogWrite(G, 0);    //GREEN
   WiFiDrv::analogWrite(B, 16);   //BLUE
 
-  wifiManager->InitWiFiAccessPoint();
-  webServer->InitWebServer();
-
-  // set the cursor to column 0, line 1
-  // line 1 is the second row, since counting begins with 0
-  //lcd.setCursor(0, 1);
-
-  //lcd.begin(16, 2);                          // put your LCD parameters here
-  //lcd.print("Travel     Avg");
-  //lcd.setCursor(4,1);
-  //lcd.print("mm");
+  wifiManager.InitWiFiAccessPoint();
+  webServer.InitWebServer();
 }
 
 void loop() 
@@ -104,10 +81,9 @@ void loop()
   int mmtravel = map(potValue, 0, 1023, 0, 150);
 
   OutputToSerial(mmtravel);
-  //OutputToLCD(mmtravel);
 
-  wifiManager->CheckWiFiStatus();
-  webServer->ListenClients();
+  wifiManager.CheckWiFiStatus();
+  webServer.ListenClients();
 
   delay(50);
 }
@@ -122,18 +98,3 @@ void OutputToSerial(int mmtravel)
     Serial.print(mmtravel);
     Serial.println("mm");
 }
-
-// void OutputToLCD(int mmtravel)
-// {
-//     // output to LCD
-//     lcd.setCursor(0,1);
-//     lcd.print("          ");
-//     lcd.setCursor(0,1);
-//     lcd.print(mmtravel);
-//     lcd.setCursor(11,1);
-//     lcd.print("80 mm");
-//     lcd.setCursor(4,1);
-//     lcd.print("mm");
-// }
-
-
