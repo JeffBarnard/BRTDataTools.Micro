@@ -8,4 +8,5 @@ public:
     void InitWebServer();
     void ListenClients();
 };
+
 #endif // WEBSERVER_H

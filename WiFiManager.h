@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 // TODO
-// Open WiFi access point
 // Transfer data to PC via WiFi
 
 class WiFiManager {

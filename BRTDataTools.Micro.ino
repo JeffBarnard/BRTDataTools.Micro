@@ -15,6 +15,10 @@ TODO:
 #include "AnalogReader.h"
 #include "SDManager.h"
 
+#define POT_TRAVEL 150
+#define POT_MIN_V 100
+#define POT_MAX_V 850
+
 #define R 26
 #define G 25
 #define B 27
@@ -22,48 +26,26 @@ TODO:
 WebServer webServer;
 WiFiManager wifiManager;
 
-#define V_OUT 3
-#define POT_PIN (A0)
-
-int potValue;
-int angle;
+#define V_OUT 13
+#define POT_PIN (A1)
+#define BOARD_DELAY (50)
+#define PLOT 0
 
 void setup() 
 {
-  Serial.begin(9600);           // initialize serial communication
+  Serial.begin(115200);           // initialize serial communication
   
   // power
-  pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
+  pinMode(V_OUT, OUTPUT);
+  digitalWrite(V_OUT, HIGH); // set 5v output
 
-  pinMode(V_OUT, OUTPUT);      // set the LED pin mode
+  WiFiDrv::pinMode(R, OUTPUT);
+  WiFiDrv::pinMode(G, OUTPUT);
+  WiFiDrv::pinMode(B, OUTPUT);
   
-  digitalWrite(V_OUT, HIGH);   // set 5v output
-  //analogWrite(V_OUT, 25);  
-
-  WiFiDrv::pinMode(25, OUTPUT);
-  WiFiDrv::pinMode(26, OUTPUT);
-  WiFiDrv::pinMode(27, OUTPUT);
-  
-  WiFiDrv::analogWrite(26, 16);  //RED
-  WiFiDrv::analogWrite(25, 0);   //GREEN
-  WiFiDrv::analogWrite(27, 0);   //BLUE
-
-  // attempt to connect to WiFi network:
-  // while (status != WL_CONNECTED) {
-  //   Serial.print("Attempting to connect to Network named: ");
-  //   Serial.println(ssid);                   // print the network name (SSID);
-
-  //   // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-  //   status = WiFi.begin(ssid, pass);
-  //   // wait 5 seconds for connection:
-  //   delay(5000);
-  // }
-  //server.begin();                           // start the web server on port 80
-  //printWifiStatus();                        // you're connected now, so print out the status
-
-  digitalWrite(V_OUT, HIGH);          // set 5v output
-  //analogWrite(V_OUT, 25);
+  WiFiDrv::analogWrite(R, 16);  //RED
+  WiFiDrv::analogWrite(G, 0);   //GREEN
+  WiFiDrv::analogWrite(B, 0);   //BLUE
 
   WiFiDrv::analogWrite(R, 0);    //RED
   WiFiDrv::analogWrite(G, 0);    //GREEN
@@ -75,26 +57,30 @@ void setup()
 
 void loop() 
 { 
-  potValue = analogRead(POT_PIN);
+  int pot_raw = analogRead(POT_PIN);
   // Analog -> Digital transformation
   // Map potentiometer min/max values to 0-150mm range
-  int mmtravel = map(potValue, 0, 1023, 0, 150);
+  int mmtravel = map(pot_raw, POT_MAX_V, POT_MIN_V, 0, POT_TRAVEL);
+  
+  OutputToSerial(mmtravel, pot_raw);
 
-  OutputToSerial(mmtravel);
+  //wifiManager.CheckWiFiStatus();
+  //webServer.ListenClients();
 
-  wifiManager.CheckWiFiStatus();
-  webServer.ListenClients();
-
-  delay(50);
+  delay(BOARD_DELAY);
 }
 
-void OutputToSerial(int mmtravel)
+void OutputToSerial(int mmtravel, int raw_v)
 {
     // Plotter range
-    //Serial.println("Min:-2,Max:151");
+    if (PLOT)
+      Serial.println("Min:-2,Max:151");
 
     // plotter output
-    Serial.print("Travel: ");
+    Serial.print("Travel:");
     Serial.print(mmtravel);
-    Serial.println("mm");
+
+    Serial.print("  v:");
+    Serial.println(raw_v);
+    //Serial.println("mm");
 }

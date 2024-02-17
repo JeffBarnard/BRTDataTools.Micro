@@ -3,12 +3,13 @@
 
 #include <Arduino.h>
 
-// TODO
-// Save data to SD card
-
 class SDManager {
-//public:
-    
+public:
+    // Save data to SD card
+    void SaveData();
+
+    // Read data from SD card
+    void ReadData();    
 };
 
 #endif // SDMANAGER_H
