@@ -1,5 +1,10 @@
+### VisualStudioCode ###
 .vscode/*
-.vscode/c_cpp_properties.json
+.vscode/**/*
+#!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 build/*
 arduino_secrets.h
 WebServerWiFi/.theia_bk/launch.json
