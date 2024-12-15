@@ -1,4 +1,6 @@
+.vscode/*
+.vscode/c_cpp_properties.json
 build/*
+arduino_secrets.h
 WebServerWiFi/.theia_bk/launch.json
 WebServerWiFi/.vscode_bk/*
-arduino_secrets.h

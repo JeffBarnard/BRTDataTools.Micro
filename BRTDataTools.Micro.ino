@@ -15,9 +15,21 @@ TODO:
 #include "AnalogReader.h"
 #include "SDManager.h"
 
-#define POT_TRAVEL 150
-#define POT_MIN_V 100
-#define POT_MAX_V 850
+// AiM Eclipse 5V spec
+// 500mV = 150mm, 4500mV = 0mm 
+
+// Observed with 9V battery input
+// 0.50 = 148mm, 4.05 = 0mm  
+
+#define POT_TRAVEL_MM 150.0
+#define POT_MIN_V 0.50
+#define POT_MAX_V 4.05
+
+#define POT_PIN (A0)
+#define V_OUT 13
+
+#define BOARD_DELAY (100) // 40Hz Default
+#define PLOT 0
 
 #define R 26
 #define G 25
@@ -26,14 +38,9 @@ TODO:
 WebServer webServer;
 WiFiManager wifiManager;
 
-#define V_OUT 13
-#define POT_PIN (A1)
-#define BOARD_DELAY (50)
-#define PLOT 0
-
 void setup() 
 {
-  Serial.begin(115200);           // initialize serial communication
+  Serial.begin(9600);           // initialize serial communication
   
   // power
   pinMode(V_OUT, OUTPUT);
@@ -57,30 +64,51 @@ void setup()
 
 void loop() 
 { 
-  int pot_raw = analogRead(POT_PIN);
+  int sensorvalue = analogRead(POT_PIN);
+  float voltage = sensorvalue * (5.0 / 1023.0);
   // Analog -> Digital transformation
   // Map potentiometer min/max values to 0-150mm range
-  int mmtravel = map(pot_raw, POT_MAX_V, POT_MIN_V, 0, POT_TRAVEL);
+  int mmtravel = mapf(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
-  OutputToSerial(mmtravel, pot_raw);
+  OutputToSerial(mmtravel, voltage, sensorvalue);
 
-  //wifiManager.CheckWiFiStatus();
-  //webServer.ListenClients();
+  wifiManager.CheckWiFiStatus();
+  webServer.ListenClients();
 
   delay(BOARD_DELAY);
 }
 
-void OutputToSerial(int mmtravel, int raw_v)
+// map function for float fractions
+long mapf(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void OutputToSerial(int mmtravel, float raw_v, float sensorvalue)
 {
     // Plotter range
     if (PLOT)
-      Serial.println("Min:-2,Max:151");
+    {
+      Serial.print("Min:0,Max:");
+      Serial.println(POT_MAX_V + 100);
+    }
 
-    // plotter output
+    // serial output
     Serial.print("Travel:");
     Serial.print(mmtravel);
 
-    Serial.print("  v:");
-    Serial.println(raw_v);
-    //Serial.println("mm");
+    Serial.print("  V:");
+    Serial.print(raw_v);
+    Serial.print("  Raw:");
+    Serial.print(sensorvalue);
+
+    // New line
+    Serial.println();    
+}
+
+void DataPoint()
+{
+  // 
+  // 
+  // Time
 }

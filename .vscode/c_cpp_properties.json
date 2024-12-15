@@ -1,28 +1,6 @@
 {
     "version": 4,
     "configurations": [
-        // {
-        //     "name": "Win32",
-        //     "compilerPath": "cl.exe",
-        //     "compilerArgs": [],
-        //     "intelliSenseMode": "windows-msvc-x64",
-        //     "includePath": [
-        //         "${workspaceFolder}/**",
-        //         "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.9.2\\include",
-        //         //"C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\5.4.0\\include",
-        //         "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
-        //         "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\standard",
-        //         "C:\\Program Files (x86)\\Arduino"
-        //     ],
-        //     "forcedInclude": [],
-        //     "cStandard": "c17",
-        //     "cppStandard": "c++17",
-        //     "defines": [
-        //         "_DEBUG",
-        //         "UNICODE",
-        //         "_UNICODE"
-        //     ]
-        // },
         {
             "name": "Arduino",
             "compilerPath": "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\bin\\avr-g++",
@@ -41,18 +19,12 @@
                 "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\megaavr\\1.8.8\\cores\\arduino\\api\\deprecated",
                 "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\megaavr\\1.8.8\\cores\\arduino",
                 "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\megaavr\\1.8.8\\variants\\uno2018",
-                "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\libraries\\Arduino_BuiltIn\\src",
+                "C:\\Users\\jbarnard.PINPOINT\\Documents\\Arduino\\libraries\\Arduino_BuiltIn\\src",
                 "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\megaavr\\1.8.8\\libraries\\SPI\\src",
                 "C:\\Users\\jbarnard.PINPOINT\\Documents\\Arduino\\libraries\\WiFiNINA\\src",
-                "C:\\Users\\jbarnard.PINPOINT\\Documents\\Arduino\\libraries\\LiquidCrystal\\src",
-                "c:\\users\\jbarnard.PINPOINT\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\lib\\gcc\\avr\\7.3.0\\include",
-                "c:\\users\\jbarnard.PINPOINT\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\lib\\gcc\\avr\\7.3.0\\include-fixed",
-                "c:\\users\\jbarnard.PINPOINT\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\avr\\include",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\4.9.2\\include",
-                //"C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\lib\\gcc\\avr\\5.4.0\\include",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\variants\\standard",
-                "C:\\Program Files (x86)\\Arduino"
+                "c:\\users\\jbarnard.pinpoint\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\lib\\gcc\\avr\\7.3.0\\include",
+                "c:\\users\\jbarnard.pinpoint\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\lib\\gcc\\avr\\7.3.0\\include-fixed",
+                "c:\\users\\jbarnard.pinpoint\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino5\\avr\\include"
             ],
             "forcedInclude": [
                 "C:\\Users\\jbarnard.PINPOINT\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\megaavr\\1.8.8\\cores\\arduino\\Arduino.h"
