@@ -4,8 +4,11 @@
 #include <Arduino.h>
 
 class WebServer {
+private:    
+    int _output;
 public:
     void InitWebServer();
+    void SetOutput(int output);    
     void ListenClients();
 };
 

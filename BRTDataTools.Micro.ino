@@ -19,17 +19,20 @@ TODO:
 // 500mV = 150mm, 4500mV = 0mm 
 
 // Observed with 9V battery input
-// 0.50 = 148mm, 4.05 = 0mm  
+// 0.50 = 150mm, 4.05 = 0mm  
+
+// Observed with 12V input
+// 0.52 = 150mm, 4.06 = 0mm  
 
 #define POT_TRAVEL_MM 150.0
-#define POT_MIN_V 0.50
-#define POT_MAX_V 4.05
+#define POT_MIN_V 0.52
+#define POT_MAX_V 4.06
 
 #define POT_PIN (A0)
 #define V_OUT 13
 
-#define BOARD_DELAY (100) // 40Hz Default
-#define PLOT 0
+#define BOARD_DELAY (20) // 20Hz Default
+#define PLOT_BOUNDS 0
 
 #define R 26
 #define G 25
@@ -70,6 +73,7 @@ void loop()
   // Map potentiometer min/max values to 0-150mm range
   int mmtravel = mapf(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
+  webServer.SetOutput(mmtravel);
   OutputToSerial(mmtravel, voltage, sensorvalue);
 
   wifiManager.CheckWiFiStatus();
@@ -87,7 +91,7 @@ long mapf(float x, float in_min, float in_max, float out_min, float out_max)
 void OutputToSerial(int mmtravel, float raw_v, float sensorvalue)
 {
     // Plotter range
-    if (PLOT)
+    if (PLOT_BOUNDS)
     {
       Serial.print("Min:0,Max:");
       Serial.println(POT_MAX_V + 100);
