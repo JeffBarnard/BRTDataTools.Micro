@@ -8,6 +8,9 @@ public:
     // Read pot data
     void ReadData();
 
+    // Get last pot data
+    int GetLastData();
+
     // Map pot data to range (0-150mm)
     void MapData();
 

@@ -10,10 +10,10 @@ TODO:
 #include <WiFiNINA.h>
 #include <utility/wifi_drv.h>
 
-#include "WebServer.h"
-#include "WiFiManager.h"
-#include "AnalogReader.h"
-#include "SDManager.h"
+#include "src/WebServer.h"
+#include "src/WiFiManager.h"
+#include "src/AnalogReader.h"
+#include "src/SDManager.h"
 
 // AiM Eclipse 5V spec
 // 500mV = 150mm, 4500mV = 0mm 
@@ -38,6 +38,8 @@ TODO:
 #define G 25
 #define B 27
 
+AnalogReader analogReader;
+SDManager sdManager;
 WebServer webServer;
 WiFiManager wifiManager;
 
@@ -46,9 +48,9 @@ void setup()
   Serial.begin(9600);           // initialize serial communication
   
   // power
-  pinMode(V_OUT, OUTPUT);
+  pinMode(V_OUT, OUTPUT);    
   digitalWrite(V_OUT, HIGH); // set 5v output
-
+      
   WiFiDrv::pinMode(R, OUTPUT);
   WiFiDrv::pinMode(G, OUTPUT);
   WiFiDrv::pinMode(B, OUTPUT);
@@ -57,22 +59,24 @@ void setup()
   WiFiDrv::analogWrite(G, 0);   //GREEN
   WiFiDrv::analogWrite(B, 0);   //BLUE
 
-  WiFiDrv::analogWrite(R, 0);    //RED
-  WiFiDrv::analogWrite(G, 0);    //GREEN
-  WiFiDrv::analogWrite(B, 16);   //BLUE
-
+  sdManager.Init();
   wifiManager.InitWiFiAccessPoint();
   webServer.InitWebServer();
 }
 
 void loop() 
 { 
+  analogReader.ReadData();
+
+  analogReader.GetLastData();
+
   int sensorvalue = analogRead(POT_PIN);
   float voltage = sensorvalue * (5.0 / 1023.0);
   // Analog -> Digital transformation
   // Map potentiometer min/max values to 0-150mm range
   int mmtravel = mapf(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
+  sdManager.WriteData(String(mmtravel));
   webServer.SetOutput(mmtravel);
   OutputToSerial(mmtravel, voltage, sensorvalue);
 
