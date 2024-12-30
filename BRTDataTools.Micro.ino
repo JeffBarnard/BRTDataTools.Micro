@@ -29,7 +29,8 @@ TODO:
 #define POT_MAX_V 4.06
 
 #define POT_PIN (A0)
-#define V_OUT 13
+#define V_OUT 7
+#define SD_CHIP_SELECT 10 // SD chip select pin for Adafruit type Data Logging Shield
 
 #define BOARD_DELAY (20) // 20Hz Default
 #define PLOT_BOUNDS 0
@@ -48,7 +49,7 @@ void setup()
   Serial.begin(9600);           // initialize serial communication
   
   // power
-  pinMode(V_OUT, OUTPUT);    
+  pinMode(V_OUT, OUTPUT);  
   digitalWrite(V_OUT, HIGH); // set 5v output
       
   WiFiDrv::pinMode(R, OUTPUT);
@@ -59,7 +60,7 @@ void setup()
   WiFiDrv::analogWrite(G, 0);   //GREEN
   WiFiDrv::analogWrite(B, 0);   //BLUE
 
-  sdManager.Init();
+  sdManager.Init(SD_CHIP_SELECT);
   wifiManager.InitWiFiAccessPoint();
   webServer.InitWebServer();
 }

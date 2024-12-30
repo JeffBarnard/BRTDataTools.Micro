@@ -6,7 +6,7 @@
 class SDManager {
 public:
     // Constructor
-    void Init();
+    void Init(int SD_CHIP_SELECT);
 
     // Save data to SD card
     void WriteData(String sensorValue);

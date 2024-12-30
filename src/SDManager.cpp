@@ -6,9 +6,6 @@
 
 #include "SDManager.h"
 
-// SD chip select pin for Adafruit type Data Logging Shield
-#define SD_CHIP_SELECT 10
-
 // for the data logging shield, we use digital pin 10 for the SD cs line
 Sd2Card card;
 RTC_DS1307 rtc;
@@ -16,12 +13,12 @@ RTC_DS1307 rtc;
 /// @brief Initialize SD card and RTC
 /// Don't forget to format the SD card before using it
 /// Windows> format /FS:FAT32 x:
-void SDManager::Init()
+void SDManager::Init(int SD_CHIP_SELECT)
 {
     // make sure that the default chip select pin is set to
     // output, even if you don't use it:
-    //pinMode(SD_CHIP_SELECT, OUTPUT);
-
+    pinMode(SD_CHIP_SELECT, OUTPUT);
+    
     if (!card.init(SPI_HALF_SPEED, SD_CHIP_SELECT)) 
     {
         Serial.println("initialization failed. Things to check:");
