@@ -1,8 +1,8 @@
 {
-    "configuration": "mode=on",
     "board": "arduino:megaavr:uno2018",
     "sketch": "BRTDataTools.Micro.ino",
-    "port": "COM3",
+    "port": "COM5",
     "programmer": "medbg",
-    "output": "build"
+    "output": "build",
+    "configuration": "mode=off"
 }

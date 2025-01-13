@@ -29,8 +29,8 @@ TODO:
 #define POT_MAX_V 4.06
 
 #define POT_PIN (A0)
-#define V_OUT 7
-#define SD_CHIP_SELECT 10 // SD chip select pin for Adafruit type Data Logging Shield
+#define V_OUT 6
+#define SD_CHIP_SELECT 10 // SD chip select pin for Adafruit Logging Shield
 
 #define BOARD_DELAY (20) // 20Hz Default
 #define PLOT_BOUNDS 0
@@ -45,10 +45,10 @@ WebServer webServer;
 WiFiManager wifiManager;
 
 void setup() 
-{
+{  
   Serial.begin(9600);           // initialize serial communication
   
-  // power
+  // Sensor power
   pinMode(V_OUT, OUTPUT);  
   digitalWrite(V_OUT, HIGH); // set 5v output
       
@@ -78,8 +78,13 @@ void loop()
   int mmtravel = mapf(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
   sdManager.WriteData(String(mmtravel));
+  
+  //OutputToSerial(mmtravel, voltage, sensorvalue);
+
+  //char * buf = sdManager.ReadData();
   webServer.SetOutput(mmtravel);
-  OutputToSerial(mmtravel, voltage, sensorvalue);
+
+  //Serial.println(buf);
 
   wifiManager.CheckWiFiStatus();
   webServer.ListenClients();
