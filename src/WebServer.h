@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-class WebServer {
+class WebServer 
+{
 private:    
     int _output;
 public:

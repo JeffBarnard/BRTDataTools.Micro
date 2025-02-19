@@ -3,10 +3,6 @@
 // #include <WiFiNINA.h>
 // #include <utility/wifi_drv.h>
 
-// #define R 26
-// #define G 25
-// #define B 27
-
 // WiFiServer server(80);
 
 // void InitWebServer() {
