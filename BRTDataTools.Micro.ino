@@ -2,10 +2,8 @@
 BRT Racing Data Tools microcontroller code
 
 TODO
-RTC for timestamping
-Unique files
+RTC timestamping
 Space monitoring
-
 */
 #include <Arduino_BuiltIn.h>
 #include <string.h>
@@ -40,7 +38,8 @@ const int POT_RESOLUTION = 1023;
 const uint8_t POT_PIN = A0;
 const int V_OUT = 6;
 
-const int SD_CHIP_SELECT = 10; // SD chip select pin for Adafruit Logging Shield
+// SD chip select pin for Adafruit Logging Shield
+const int SD_CHIP_SELECT = 10;
 const char SEPERATOR = ',';
 
 AnalogReader analogReader;
@@ -49,9 +48,9 @@ WebServer webServer;
 WiFiManager wifiManager;
 
 char ssid[] = "BRT_DataTools";   // network SSID (name)
-int keyIndex = 0;                // network key index number (needed only for WEP)
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
+char dataLogFile[] = "datalog000.txt";
 
 void setup() 
 {  
@@ -71,10 +70,9 @@ void setup()
   WiFiDrv::analogWrite(G, 0);   //GREEN
   WiFiDrv::analogWrite(B, 0);   //BLUE
 
-  //sdManager.Init(SD_CHIP_SELECT);  
-  // make sure that the default chip select pin is set to
-  // output, even if you don't use it:
-  //pinMode(SD_CHIP_SELECT, OUTPUT);
+  // make sure that the default chip select pin is set to output, even if you don't use it:
+  //sdManager.Init(SD_CHIP_SELECT);
+  pinMode(SD_CHIP_SELECT, OUTPUT);
   
   if (!SD.begin(SD_CHIP_SELECT))
   //if (!card.init(SPI_HALF_SPEED, SD_CHIP_SELECT)) 
@@ -86,20 +84,30 @@ void setup()
       while (1);
   }
 
-  //Serial.println("SD card initialized.");
+  Serial.println("SD card initialized.");
+
   //WriteCardInfo();
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.   
-  if (SD.exists("datalog.txt"))
-  {
-      Serial.println("Removing datalog.txt");
-      SD.remove("datalog.txt");
-  }
-  else
-  {
-      Serial.println("datalog.txt does not exist.");
-  }
-   
+
+  // Create the new datalog file name
+  int logiterator = FindNextAvailableNumber();
+  char cstr[4];
+  itoa(logiterator, cstr, 10);
+  str_replace(dataLogFile, "000", cstr);
+  Serial.print("Logging to ");
+  Serial.println(dataLogFile);
+
+  // if (SD.exists(dataLogFile))
+  // {
+  //     Serial.print("Removing ");
+  //     Serial.println(dataLogFile);
+  //     SD.remove(dataLogFile);
+  // }
+  // else
+  // {
+  //     Serial.print(dataLogFile);
+  //     Serial.println(" does not exist");
+  // }  
+    
   //webServer.InitWebServer();
   //wifiManager.InitWiFiAccessPoint();  
 
@@ -130,7 +138,6 @@ void setup()
   if (status != WL_AP_LISTENING) 
   {
     Serial.println("Creating access point failed");
-    // don't continue
     while (true);
   }
 
@@ -139,9 +146,8 @@ void setup()
 
   // start the web server on port 80
   server.begin();
-
-  // you're connected now, so print out the status
-  printWiFiStatus();
+  // server is connected now, so print out the status
+  PrintWiFiStatus();
 }
 
 void loop() 
@@ -153,22 +159,21 @@ void loop()
   float voltage = sensorvalue * (POT_VOLTAGE / POT_RESOLUTION);
   // Analog -> Digital transformation
   // Map potentiometer min/max values to 0-150mm range
-  int mmtravel = mapf(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
+  int mmtravel = Mapfloat(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
   //sdManager.WriteData(String(mmtravel));
-  File dataFile = SD.open("datalog.txt", FILE_WRITE);
+  File dataFile = SD.open(dataLogFile, FILE_WRITE);
      
-  // if the file is available, write to it:
+  // if the file is available write to it:
   if (dataFile) 
   {
       dataFile.print(mmtravel);
       dataFile.print(SEPERATOR);
       dataFile.close();
   }
-  // if the file isn't open, pop up an error:
   else 
   {
-      Serial.println("error opening datalog.txt init");
+      Serial.println("error opening dataLog file in loop");
       while (1);
   }
   
@@ -223,7 +228,7 @@ void loop()
             client.println();            
             // the content of the HTTP response follows the header
 
-            File dataFile = SD.open("datalog.txt", FILE_READ);
+            File dataFile = SD.open(dataLogFile, FILE_READ);
             String ch;
             if (dataFile) 
             {
@@ -240,7 +245,7 @@ void loop()
             // if the file isn't open, pop up an error:
             else 
             {
-                Serial.println("error opening datalog.txt webserver");
+                Serial.println("error reading dataLoggerFile from webserver ");
                 while (1);
             }
 
@@ -271,7 +276,7 @@ void loop()
 }
 
 // map function for float fractions
-long mapf(float x, float in_min, float in_max, float out_min, float out_max)
+long Mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -305,7 +310,7 @@ void DataPoint()
   // Time
 }
 
-void printWiFiStatus() 
+void PrintWiFiStatus() 
 {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
@@ -319,4 +324,78 @@ void printWiFiStatus()
   // print where to go in a browser:
   Serial.print("To see this page in action, open a browser to http://");
   Serial.println(ip);
+}
+
+int FindNextAvailableNumber() 
+{
+  int maxNum = 0;
+  //Sd2Card  card;
+  File root = SD.open("/"); // Open root directory
+  //SdVolume volume;
+
+  //card.init(SPI_HALF_SPEED, SD_CHIP_SELECT);
+
+   // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
+  //  if (!volume.init(card)) {
+  //   Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
+  //   while (1);
+  // }
+
+  // root.openRoot(volume);
+  // root.ls(LS_R | LS_DATE | LS_SIZE);
+
+  while (true) 
+  {
+      File entry = root.openNextFile();
+      if (!entry) {
+          break; // No more files
+      }
+
+      String fileName = entry.name();      
+      Serial.print("File exits ");
+      Serial.println(fileName);
+
+      // Extract the number from the filename
+      if (fileName.startsWith("DATALOG"))
+      {
+          // 7 is the length of "datalog" and 4 is the length of ".txt"
+          String numStr = fileName.substring(7, fileName.length() - 4); 
+          int num = numStr.toInt();
+          if (num > maxNum) {
+              maxNum = num;
+          }
+      }
+
+      entry.close();
+  }
+  root.close();
+
+  return maxNum + 1;
+}
+
+// utility string function
+void str_replace(char *src, char *oldchars, char *newchars) 
+{ 
+  char *p = strstr(src, oldchars);
+  char buf[99];
+  do 
+  {
+    if (p) 
+    {
+      memset(buf, '\0', strlen(buf));
+      if (src == p) 
+      {
+        strcpy(buf, newchars);
+        strcat(buf, p + strlen(oldchars));
+      } 
+      else 
+      {
+        strncpy(buf, src, strlen(src) - strlen(p));
+        strcat(buf, newchars);
+        strcat(buf, p + strlen(oldchars));
+      }
+      memset(src, '\0', strlen(src));
+      strcpy(src, buf);
+    }
+  } while (p && (p = strstr(src, oldchars)));
 }
