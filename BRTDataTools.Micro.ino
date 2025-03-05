@@ -50,7 +50,7 @@ WiFiManager wifiManager;
 char ssid[] = "BRT_DataTools";   // network SSID (name)
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
-char dataLogFile[] = "datalog000.txt";
+char dataLogFile[] = "data000.log";
 
 void setup() 
 {  
@@ -356,10 +356,10 @@ int FindNextAvailableNumber()
       Serial.println(fileName);
 
       // Extract the number from the filename
-      if (fileName.startsWith("DATALOG"))
+      if (fileName.startsWith("DATA"))
       {
-          // 7 is the length of "datalog" and 4 is the length of ".txt"
-          String numStr = fileName.substring(7, fileName.length() - 4); 
+          // 7 is the length of "data" and 4 is the length of ".log"
+          String numStr = fileName.substring(4, fileName.length() - 4); 
           int num = numStr.toInt();
           if (num > maxNum) {
               maxNum = num;
