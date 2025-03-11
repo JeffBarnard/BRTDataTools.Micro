@@ -5,7 +5,6 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-build/*
+build
+build/**/*
 arduino_secrets.h
-WebServerWiFi/.theia_bk/launch.json
-WebServerWiFi/.vscode_bk/*

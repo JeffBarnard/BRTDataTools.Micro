@@ -1,19 +1,22 @@
 /*
 BRT Racing Data Tools microcontroller code
 
-TODO
+TODO:
 RTC timestamping
-Space monitoring
+Volumne freespace monitoring
+GPS integration
+Autostart accelerometer
+
 */
 #include <Arduino_BuiltIn.h>
 #include <string.h>
-#include <SPI.h>
-#include <SD.h>
 #include <WiFiNINA.h>
 #include <utility/wifi_drv.h>
+#include <SPI.h>
 
-#include "src/WebServer.h"
-#include "src/WiFiManager.h"
+// #include "src/WebServer.h"
+// #include "src/WiFiManager.h"
+#include "src/Utilities.h"
 #include "src/AnalogReader.h"
 #include "src/SDManager.h"
 
@@ -22,7 +25,7 @@ Space monitoring
 #define B 27
 
 const int BOARD_DELAY = 20; // 20Hz
-const int BAUD = 9600;
+const int BAUD_RATE = 9600;
 const bool PLOT_BOUNDS = false;
 const bool PLOT_SERIAL = false;
 
@@ -40,74 +43,37 @@ const int V_OUT = 6;
 
 // SD chip select pin for Adafruit Logging Shield
 const int SD_CHIP_SELECT = 10;
-const char SEPERATOR = ',';
 
-AnalogReader analogReader;
-//SDManager sdManager;
-WebServer webServer;
-WiFiManager wifiManager;
-
+//WiFiManager wifiManager;
 char ssid[] = "BRT_DataTools";   // network SSID (name)
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
-char dataLogFile[] = "data000.log";
 
+AnalogReader* analogReader = new AnalogReader();
+SDManager* sdManager = new SDManager();
+
+/// @brief Arduino setup function
+/// Initialize serial communication, SPI, sensor power, WiFi, SD card, web server and WiFi access point
 void setup() 
 {  
   // Initialize serial communication
-  Serial.begin(BAUD);
+  Serial.begin(BAUD_RATE);
   SPI.begin();
 
   // Sensor power
   pinMode(V_OUT, OUTPUT);  
-  digitalWrite(V_OUT, HIGH); // set 5v output
+  // Set 5v output
+  digitalWrite(V_OUT, HIGH); 
       
   WiFiDrv::pinMode(R, OUTPUT);
   WiFiDrv::pinMode(G, OUTPUT);
   WiFiDrv::pinMode(B, OUTPUT);
   
-  WiFiDrv::analogWrite(R, 16);  //RED
-  WiFiDrv::analogWrite(G, 0);   //GREEN
-  WiFiDrv::analogWrite(B, 0);   //BLUE
-
-  // make sure that the default chip select pin is set to output, even if you don't use it:
-  //sdManager.Init(SD_CHIP_SELECT);
-  pinMode(SD_CHIP_SELECT, OUTPUT);
+  WiFiDrv::analogWrite(R, 16);
+  WiFiDrv::analogWrite(G, 0);
+  WiFiDrv::analogWrite(B, 0);
   
-  if (!SD.begin(SD_CHIP_SELECT))
-  //if (!card.init(SPI_HALF_SPEED, SD_CHIP_SELECT)) 
-  {
-      Serial.println("SD Initialization failed. Things to check:");
-      Serial.println("* is a card inserted?");
-      Serial.println("* is your wiring correct?");
-      Serial.println("* did you change the chipSelect pin to match your shield or module?");        
-      while (1);
-  }
-
-  Serial.println("SD card initialized.");
-
-  //WriteCardInfo();
-
-  // Create the new datalog file name
-  int logiterator = FindNextAvailableNumber();
-  char cstr[4];
-  itoa(logiterator, cstr, 10);
-  str_replace(dataLogFile, "000", cstr);
-  Serial.print("Logging to ");
-  Serial.println(dataLogFile);
-
-  // if (SD.exists(dataLogFile))
-  // {
-  //     Serial.print("Removing ");
-  //     Serial.println(dataLogFile);
-  //     SD.remove(dataLogFile);
-  // }
-  // else
-  // {
-  //     Serial.print(dataLogFile);
-  //     Serial.println(" does not exist");
-  // }  
-    
+  sdManager->Init(SD_CHIP_SELECT);      
   //webServer.InitWebServer();
   //wifiManager.InitWiFiAccessPoint();  
 
@@ -150,10 +116,12 @@ void setup()
   PrintWiFiStatus();
 }
 
+/// @brief Arduino loop function
+/// Read sensor data, map sensor data to mm, write data to SD card, output to serial, listen for clients
 void loop() 
 { 
-  analogReader.ReadData();
-  analogReader.GetLastData();
+  analogReader->ReadData();
+  analogReader->GetLastData();
 
   int sensorvalue = analogRead(POT_PIN);
   float voltage = sensorvalue * (POT_VOLTAGE / POT_RESOLUTION);
@@ -161,22 +129,8 @@ void loop()
   // Map potentiometer min/max values to 0-150mm range
   int mmtravel = Mapfloat(voltage, POT_MAX_V, POT_MIN_V, (float)0, POT_TRAVEL_MM);
   
-  //sdManager.WriteData(String(mmtravel));
-  File dataFile = SD.open(dataLogFile, FILE_WRITE);
-     
-  // if the file is available write to it:
-  if (dataFile) 
-  {
-      dataFile.print(mmtravel);
-      dataFile.print(SEPERATOR);
-      dataFile.close();
-  }
-  else 
-  {
-      Serial.println("error opening dataLog file in loop");
-      while (1);
-  }
-  
+  sdManager->WriteData(String(mmtravel));  
+    
   if (PLOT_SERIAL)
     OutputToSerial(mmtravel, voltage, sensorvalue);
 
@@ -208,8 +162,7 @@ void loop()
     String currentLine = "";                // make a String to hold incoming data from the client
 
     while (client.connected()) 
-    {            
-      //delayMicroseconds(10);              // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
+    {   
       if (client.available()) 
       {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
@@ -228,15 +181,16 @@ void loop()
             client.println();            
             // the content of the HTTP response follows the header
 
-            File dataFile = SD.open(dataLogFile, FILE_READ);
             String ch;
+            File dataFile = sdManager->SD.open(sdManager->GetCurrentDataLogFile(), FILE_READ);
+            
             if (dataFile) 
             {
                 while (dataFile.available())
                 {
-                  ch = dataFile.readStringUntil(SEPERATOR);
+                  ch = dataFile.readStringUntil(sdManager->SEPERATOR);
                   client.print(ch);
-                  client.print(SEPERATOR);
+                  client.print(sdManager->SEPERATOR);
                 }
                 dataFile.close();
                 // null terminate string
@@ -273,6 +227,10 @@ void loop()
   }
 
   delay(BOARD_DELAY);
+
+  WiFiDrv::analogWrite(R, 0);
+  WiFiDrv::analogWrite(G, 16);
+  WiFiDrv::analogWrite(B, 0);
 }
 
 // map function for float fractions
@@ -303,13 +261,6 @@ void OutputToSerial(int mmtravel, float raw_v, float sensorvalue)
     Serial.println();
 }
 
-void DataPoint()
-{
-  // 
-  // 
-  // Time
-}
-
 void PrintWiFiStatus() 
 {
   // print the SSID of the network you're attached to:
@@ -324,78 +275,4 @@ void PrintWiFiStatus()
   // print where to go in a browser:
   Serial.print("To see this page in action, open a browser to http://");
   Serial.println(ip);
-}
-
-int FindNextAvailableNumber() 
-{
-  int maxNum = 0;
-  //Sd2Card  card;
-  File root = SD.open("/"); // Open root directory
-  //SdVolume volume;
-
-  //card.init(SPI_HALF_SPEED, SD_CHIP_SELECT);
-
-   // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
-  //  if (!volume.init(card)) {
-  //   Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
-  //   while (1);
-  // }
-
-  // root.openRoot(volume);
-  // root.ls(LS_R | LS_DATE | LS_SIZE);
-
-  while (true) 
-  {
-      File entry = root.openNextFile();
-      if (!entry) {
-          break; // No more files
-      }
-
-      String fileName = entry.name();      
-      Serial.print("File exits ");
-      Serial.println(fileName);
-
-      // Extract the number from the filename
-      if (fileName.startsWith("DATA"))
-      {
-          // 7 is the length of "data" and 4 is the length of ".log"
-          String numStr = fileName.substring(4, fileName.length() - 4); 
-          int num = numStr.toInt();
-          if (num > maxNum) {
-              maxNum = num;
-          }
-      }
-
-      entry.close();
-  }
-  root.close();
-
-  return maxNum + 1;
-}
-
-// utility string function
-void str_replace(char *src, char *oldchars, char *newchars) 
-{ 
-  char *p = strstr(src, oldchars);
-  char buf[99];
-  do 
-  {
-    if (p) 
-    {
-      memset(buf, '\0', strlen(buf));
-      if (src == p) 
-      {
-        strcpy(buf, newchars);
-        strcat(buf, p + strlen(oldchars));
-      } 
-      else 
-      {
-        strncpy(buf, src, strlen(src) - strlen(p));
-        strcat(buf, newchars);
-        strcat(buf, p + strlen(oldchars));
-      }
-      memset(src, '\0', strlen(src));
-      strcpy(src, buf);
-    }
-  } while (p && (p = strstr(src, oldchars)));
 }
