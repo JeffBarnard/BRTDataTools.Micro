@@ -34,7 +34,6 @@ class SDManager
     SDClass SD;
     const char SEPERATOR = ',';
 
-    // ctor
     SDManager()
     {
       SD = SDLib::SDClass();
